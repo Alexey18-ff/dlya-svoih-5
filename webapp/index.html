@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Меню</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--bg:#faf7f2;--card:#fff;--ink:#1b1b1b;--mute:#8a8580;--line:#eee8df;--accent:#959c70;--accent-d:#808860;--accent-t:#667048;--err:#c0392b;--olive:#667048;--olive-bg:#e8ebdb;--ok:#2f8f75;--radius:18px;--nav:68px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.35 -apple-system,"SF Pro Text",Roboto,"Segoe UI",sans-serif;transition:background .25s}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+#app{max-width:520px;margin:0 auto;padding:0 16px calc(var(--nav) + 28px + env(safe-area-inset-bottom));min-height:100vh}
+h1,h2,h3,p{margin:0}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.serif{font-family:Georgia,"Times New Roman",serif;font-style:italic}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px;position:sticky;top:0;background:var(--bg);z-index:20}
+.top h2{font-size:19px;flex:1;text-align:center}
+.ic{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--card);border:1.5px solid var(--olive);color:var(--olive);position:relative}
+.ic.plain{border-color:var(--line);color:var(--ink)}
+.brand{font-weight:800;font-size:20px;letter-spacing:.3px}.brand b{color:var(--accent-t)}
+.badge{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 4px}
+/* hero */
+.hero{position:relative;padding:6px 0 4px}
+.mini{width:40px;height:40px;border-radius:50%;margin-right:10px}
+.top .brand{flex:1}
+.hero{text-align:center}.hero .logo{width:112px;height:112px;border-radius:50%;box-shadow:0 14px 30px -14px rgba(93,107,59,.7);margin:2px auto 8px;display:block}
+.hero .sub{max-width:none!important}
+.hero h1{font-size:34px!important}
+.hero .kick{color:var(--olive);font-size:22px}
+.hero h1{font-size:44px;line-height:1.02;font-weight:800;margin-top:2px;letter-spacing:-1px}
+.hero h1 em{font-style:normal;color:var(--accent-t);display:block}
+.hero .sub{color:var(--ink);font-size:13px;margin-top:8px;max-width:58%;line-height:1.4}
+.plate{position:relative;z-index:0;margin:6px -16px 0;height:250px}
+.blob{position:absolute;inset:18px 0 0 0;background:var(--olive-bg);border-radius:60% 40% 55% 45%/55% 50% 50% 45%;opacity:.9}
+.plate img,.plate .ph{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:78%;aspect-ratio:1.3;object-fit:cover;border-radius:28px;box-shadow:0 18px 30px -12px rgba(0,0,0,.35)}
+.plate .ph{display:grid;place-items:center;font-size:90px;background:#fff}
+.pricecirc{position:absolute;right:14px;top:-62px;width:92px;height:92px;border-radius:50%;background:var(--accent-d);color:#fff;display:grid;place-content:center;text-align:center;border:3px dashed rgba(255,255,255,.5);outline:3px solid var(--accent-d)}
+.pricecirc small{font-size:10px;letter-spacing:1px;opacity:.85}.pricecirc b{font-size:20px;line-height:1.1}
+.fast{position:absolute;right:20px;bottom:8px;width:84px;height:84px;border-radius:50%;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.12);display:grid;place-items:center;text-align:center;font-size:10px;font-weight:700;color:var(--accent-t);line-height:1.15;padding:8px}
+.cta{display:flex;gap:10px;margin:14px 0 8px}
+.btn,.ic{text-decoration:none}
+.btn{height:50px;border-radius:26px;padding:0 22px;font-weight:700;font-size:14px;letter-spacing:.4px;display:inline-flex;align-items:center;justify-content:center;gap:10px;text-transform:uppercase}
+.btn.red{background:var(--accent);color:#fff;box-shadow:0 8px 18px -8px #6f7a4f}
+.btn.red:active{background:var(--accent-d)}
+.btn.line{border:1.5px solid var(--olive);color:var(--olive);background:transparent}
+.btn.block{width:100%}.btn.sm{height:40px;font-size:13px;padding:0 16px}
+.btn[disabled]{opacity:.5}
+.sect{display:flex;align-items:center;justify-content:center;gap:10px;margin:22px 0 12px;font-size:20px;font-weight:700}
+.sect .serif{color:var(--olive);font-weight:400}
+.hscroll{display:flex;gap:12px;overflow-x:auto;margin:0 -16px;padding:2px 16px 12px;scrollbar-width:none}
+.hscroll::-webkit-scrollbar{display:none}
+.fav{flex:none;width:136px;border-radius:var(--radius);background:var(--olive-bg);padding:8px;position:relative}
+.fav:nth-child(3n+2){background:#f1efe4}
+.fav .im{aspect-ratio:1.05;border-radius:14px;overflow:hidden;background:#fff}
+.fav img{width:100%;height:100%;object-fit:cover;display:block}
+.fav h4{margin:8px 2px 4px;font-size:13px;line-height:1.2;height:32px;overflow:hidden}
+.fav .pr{position:absolute;right:10px;top:70px;width:44px;height:44px;border-radius:50%;background:#fff;display:grid;place-content:center;text-align:center;font-weight:800;font-size:12px;box-shadow:0 4px 10px rgba(0,0,0,.15)}
+.fav .btn{width:100%;height:30px;font-size:10px;padding:0;background:var(--accent-d);color:#fff;border-radius:15px}
+.why{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
+.why div{font-size:11px;color:var(--mute);line-height:1.25}
+.why b{display:block;color:var(--ink);font-size:11.5px;margin-top:6px}
+.why .ci{width:48px;height:48px;border-radius:50%;margin:0 auto;display:grid;place-items:center;background:var(--olive-bg);color:var(--accent-t)}
+.why .ci:nth-child(odd){}
+/* chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 16px 10px;margin:0 -16px;scrollbar-width:none;position:sticky;top:66px;background:var(--bg);z-index:19}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:9px 16px;border-radius:20px;font-weight:600;font-size:13.5px;color:#555}
+.chip.on{background:var(--accent);color:#fff}
+.search{display:none;margin:0 0 6px}.search.on{display:block}
+.search input{width:100%;height:44px;border-radius:22px;border:1.5px solid var(--line);background:#fff;padding:0 18px;outline:0}
+/* dish */
+.dish{display:flex;gap:12px;background:var(--card);border-radius:var(--radius);padding:10px;margin-bottom:12px;box-shadow:0 2px 12px rgba(80,50,20,.05);position:relative}
+.dish.off{opacity:.55}
+.dish .ph{width:108px;height:108px;flex:none;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#f3ebdd,#ece3d2);display:grid;place-items:center;font-size:40px;position:relative}
+.dish .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.dish .info{flex:1;min-width:0;display:flex;flex-direction:column}
+.dish h3{font-size:16px;line-height:1.2;font-weight:700}
+.dish p{color:var(--mute);font-size:12.5px;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dish .row{margin-top:auto;display:flex;align-items:center;justify-content:space-between;padding-top:6px}
+.price{font-weight:800;font-size:17px}
+.tag{position:absolute;left:14px;top:14px;background:var(--accent);color:#fff;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:9px;z-index:2}
+.tag.stop{background:#555;left:auto;right:14px}
+.add{width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;box-shadow:0 6px 14px -6px var(--accent)}
+.add:active{transform:scale(.92)}
+.step{display:flex;align-items:center;gap:2px;background:#f4efe8;border-radius:20px;padding:3px}
+.step button{width:32px;height:32px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.step span{min-width:26px;text-align:center;font-weight:700}
+.empty{text-align:center;color:var(--mute);padding:50px 20px}
+.empty .big{font-size:54px;margin-bottom:6px}
+.cartbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav) + 14px + env(safe-area-inset-bottom));width:calc(100% - 32px);max-width:488px;z-index:30}
+.cartbar .btn{width:100%;justify-content:space-between;height:52px}
+/* nav */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav div{max-width:520px;margin:0 auto;height:var(--nav);display:flex}
+nav div{gap:2px;padding:0 6px}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10.5px;letter-spacing:.2px;color:#9a968f;position:relative;margin:8px 0;border-radius:16px;transition:.2s}
+nav button svg{width:21px;height:21px;stroke-width:1.8}
+nav button.on{color:var(--accent-t);font-weight:600;background:var(--olive-bg)}
+nav .badge{top:2px;right:calc(50% - 22px)}
+/* cart */
+.cl{background:var(--card);border-radius:var(--radius);padding:10px;margin-bottom:10px;display:flex;gap:12px;align-items:center}
+.cl .ph{width:62px;height:62px;border-radius:12px;overflow:hidden;background:#f3ebdd;display:grid;place-items:center;font-size:26px;flex:none}
+.cl .ph img{width:100%;height:100%;object-fit:cover}
+.cl .t{flex:1;min-width:0}.cl .t b{display:block;font-size:14.5px;line-height:1.2}
+.cl .t span{font-weight:700;color:var(--accent-t);font-size:14px}
+.sum{background:var(--card);border-radius:var(--radius);padding:14px 16px;margin:14px 0}
+.sum .r{display:flex;justify-content:space-between;padding:4px 0;color:#555}
+.sum .r.t{color:var(--ink);font-weight:800;font-size:18px;border-top:1px dashed var(--line);margin-top:6px;padding-top:10px}
+.sum .r.t b{color:var(--accent-t)}
+.note{font-size:12.5px;color:var(--mute);text-align:center;margin:-4px 0 12px}
+.note.warn{color:var(--err)}
+/* checkout page */
+.page{position:fixed;inset:0;background:var(--bg);z-index:60;overflow-y:auto;display:none}
+.page.on{display:block}
+.page .in{max-width:520px;margin:0 auto;padding:0 16px 40px}
+.seg{display:flex;background:#fff;border:1.5px solid var(--line);border-radius:24px;padding:3px;margin:6px 0 14px}
+.seg button{flex:1;height:40px;border-radius:21px;font-weight:600;color:#666}
+.seg button.on{background:var(--accent);color:#fff}
+.f{display:block;margin-bottom:10px}
+.f>span{display:block;font-size:12px;color:var(--mute);margin:0 0 4px 4px}
+.f input,.f textarea,.f select{width:100%;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:12px 14px;outline:0}
+.f input:focus,.f textarea:focus{border-color:var(--accent-t)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+#map{height:240px;border-radius:16px;border:1.5px solid var(--line);margin:4px 0 6px;z-index:1}
+.maphint{font-size:12.5px;color:var(--mute);display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.maphint.ok{color:var(--ok)}
+.pill{display:inline-flex;gap:6px;align-items:center;height:36px;padding:0 14px;border-radius:18px;background:#fff;border:1.5px solid var(--olive);color:var(--olive);font-weight:600;font-size:13px;margin-bottom:6px}
+/* orders (green theme) */
+.tabs{display:flex;background:#fff;border:1.5px solid var(--accent);border-radius:12px;overflow:hidden;margin:6px 0 16px}
+.tabs button{flex:1;height:42px;font-weight:600;color:var(--accent-t)}
+.tabs button.on{background:var(--accent);color:#fff}
+.ord{background:linear-gradient(180deg,#fff,#f7fbf9);border-radius:22px;padding:16px;margin-bottom:16px;box-shadow:0 6px 22px -10px rgba(20,90,70,.25)}
+.ord .inv{text-align:center;font-weight:700;margin-bottom:14px}
+.tl{position:relative;padding-left:0}
+.st{display:flex;gap:12px;align-items:flex-start;min-height:74px;position:relative}
+.st:last-child{min-height:44px}
+.st:not(:last-child)::after{content:"";position:absolute;left:21px;top:46px;bottom:2px;border-left:2px dotted var(--accent);opacity:.7}
+.st .dot{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--accent);color:var(--accent-t);background:#fff;flex:none}
+.st.done .dot{background:var(--accent);color:#fff}
+.st.todo .dot{border-color:#cfd6d3;color:#aab2af;background:#eceeed}
+.st.todo::after{border-color:#cfd6d3!important}
+.st b{display:block;font-size:14.5px;margin-top:2px}.st small{color:#666;font-size:12.5px;display:flex;gap:5px;align-items:center;margin-top:3px}
+.ord .det{border-top:1px dashed #cfe0d8;margin-top:12px;padding-top:12px;font-size:13px;color:#555}
+.ord .det div{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+.ord .det b{color:var(--ink)}
+.rej{background:#fbe9e6;color:#a8322a;border-radius:14px;padding:12px;text-align:center;font-weight:600;margin-bottom:12px}
+.call{margin-top:12px;display:flex;gap:10px}.call .btn{flex:1;height:46px;background:var(--accent);color:#fff;text-transform:none;border-radius:14px;font-size:14px}
+/* admin */
+.adm .opn{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:var(--radius);padding:14px 16px;margin:6px 0 12px}
+.sw{width:50px;height:30px;border-radius:15px;background:#d6d1c8;position:relative;transition:.2s;flex:none}
+.sw::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw.on{background:var(--ok)}.sw.on::after{left:23px}
+.ph .cam{position:absolute;right:4px;bottom:4px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;display:grid;place-items:center}
+.ph .cam svg{width:14px;height:14px}
+.acts{display:flex;gap:6px;align-items:center}
+.acts button{width:34px;height:34px;border-radius:50%;background:#f4efe8;display:grid;place-items:center}
+.acts svg{width:17px;height:17px}
+.catname{font-weight:800;margin:18px 2px 8px;font-size:16px;color:var(--olive)}
+/* sheet */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:80;display:none;align-items:flex-end;justify-content:center}
+.sheet-bg.on{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:520px;max-height:92vh;overflow-y:auto;border-radius:24px 24px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom))}
+.sheet h3{font-size:18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.photo{position:relative;height:170px;border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#f3ebdd,#ece3d2);margin-bottom:10px;display:grid;place-items:center;color:var(--mute);text-align:center}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.photo .pl{position:relative;z-index:1}
+.photo.has .pl{display:none}
+.photo.busy::after{content:"Загрузка…";position:absolute;inset:0;background:rgba(255,255,255,.75);display:grid;place-items:center;font-weight:700}
+.chk{display:flex;gap:18px;margin:4px 0 14px}
+.chk label{display:flex;gap:8px;align-items:center;font-weight:600}
+.chk input{width:20px;height:20px;accent-color:var(--accent-t)}
+.toast{position:fixed;left:50%;top:18px;transform:translate(-50%,-90px);background:#222;color:#fff;padding:12px 18px;border-radius:14px;z-index:100;transition:.3s;max-width:90%;text-align:center;font-size:14px}
+.toast.on{transform:translate(-50%,0)}.toast.err{background:var(--err)}
+.spin{text-align:center;color:var(--mute);padding:60px}
+textarea.imp{min-height:220px}
+[hidden]{display:none!important}
+/* ---- главная (новый макет) ---- */
+.hhead{display:flex;align-items:center;gap:12px;padding:14px 0 12px}
+.hhead img{width:58px;height:58px;border-radius:50%;flex:none;box-shadow:0 6px 16px -8px rgba(93,107,59,.6)}
+.hhead .t{flex:1;min-width:0}
+.hhead .t b{display:block;font-size:22px;line-height:1.15;font-weight:800}
+.hhead .t span{display:flex;align-items:center;gap:5px;font-size:14px;color:#3d3d3d;margin-top:2px}
+.hhead .t svg{width:15px;height:15px;stroke-width:1.8}
+.ic.soft{border:0;background:#fff;box-shadow:0 6px 18px -8px rgba(60,70,30,.35);color:var(--accent-t);width:46px;height:46px}
+/* баннер */
+.hb{position:relative;border-radius:26px;overflow:hidden;min-height:226px;background:radial-gradient(90% 100% at 100% 100%,#d3dcb4 0%,rgba(211,220,180,0) 62%),linear-gradient(120deg,#f8f7ee 0%,#e9edd8 100%);box-shadow:0 16px 32px -20px rgba(93,107,59,.6)}
+.hb::before{content:"";position:absolute;left:-46px;bottom:-70px;width:190px;height:190px;border-radius:50%;background:rgba(149,156,112,.13)}
+.hb .tx{position:relative;z-index:3;padding:26px 0 26px 18px;max-width:62%;min-height:200px;display:flex;flex-direction:column;justify-content:center}
+.hb .kick{display:inline-block;font-size:11.5px;font-weight:700;color:var(--accent-t);background:rgba(255,255,255,.75);padding:5px 10px;border-radius:12px;margin-bottom:10px}
+.hb h1{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:700;font-size:clamp(22px,6.6vw,26px);line-height:1.12;color:#2b3318;letter-spacing:-.3px}
+.hb h1 svg{width:20px;height:20px;vertical-align:-2px;stroke-width:1.8}
+.hb p{font-size:13.5px;margin:8px 0 14px;color:#2f3a20}
+.hb .btn{height:44px;font-size:14px;text-transform:none;padding:0 18px;letter-spacing:0;margin-top:18px;align-self:flex-start}
+.plate2{position:absolute;right:-30px;top:50%;width:clamp(150px,47%,180px);aspect-ratio:1;transform:translateY(-50%);z-index:1}
+.plate2 .ring{position:absolute;inset:-16px;border-radius:50%;background:rgba(149,156,112,.22)}
+.plate2 .disc{position:absolute;inset:0;border-radius:50%;overflow:hidden;border:6px solid #fff;box-shadow:0 18px 30px -12px rgba(40,50,20,.5);background:#fffefa}
+.plate2 .disc>*{position:absolute;inset:0;width:100%;height:100%;display:block}
+.plate2 .disc img{object-fit:cover}
+.plate2 .sprig{position:absolute;width:46px;height:76px;z-index:2}
+.plate2 .s1{left:-20px;top:-30px;transform:rotate(-28deg)}
+.plate2 .s2{right:30px;bottom:-40px;transform:rotate(158deg)}
+.stamp{position:absolute;left:-12px;bottom:-2px;z-index:3;width:68px;height:68px;border-radius:50%;background:var(--accent-d);color:#fff;display:grid;place-content:center;justify-items:center;gap:1px;text-align:center;font-size:8.5px;font-weight:800;letter-spacing:.5px;line-height:1.15;border:2px dashed rgba(255,255,255,.7);outline:3px solid var(--accent-d);box-shadow:0 8px 16px -6px rgba(40,50,20,.5)}
+.stamp svg{width:20px;height:20px;stroke-width:1.8}
+@media (max-width:370px){.stamp{width:58px;height:58px;left:-2px;font-size:7.5px}.stamp svg{width:17px;height:17px}.hb .btn{padding:0 14px;font-size:13.5px}.hb p{font-size:13px}}
+/* хиты продаж */
+.sh{display:flex;align-items:center;justify-content:space-between;margin:24px 0 10px}
+.sh h2{font-size:22px;font-weight:800;display:flex;align-items:center;gap:8px}
+.more{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:18px;background:var(--olive-bg);color:var(--accent-t);font-weight:600;font-size:13.5px}
+.more svg{width:16px;height:16px}
+.hit{position:relative;flex:none;width:160px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 16px -8px rgba(60,50,20,.28)}
+.hit .im{position:relative;height:118px;background:linear-gradient(135deg,#f3ebdd,#e9e2cf);display:grid;place-items:center;font-size:44px;overflow:hidden}
+.hit .im img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.hit h4{margin:10px 12px 0;font-size:14px;line-height:1.25;height:35px;overflow:hidden;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.hit .row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px 12px 12px}
+.hit .row b{font-size:15px;font-weight:800}
+/* почему мы */
+.why2{background:var(--olive-bg);border-radius:22px;padding:16px 8px 14px;margin:22px 0 14px}
+.why2 h3{text-align:center;font-size:18px;font-weight:800;margin-bottom:14px}
+.why2 .g{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;text-align:center}
+.why2 .g>div{font-size:12px;line-height:1.25;color:#3d3d3d}
+.why2 .wi{display:grid;place-items:center;width:54px;height:54px;border-radius:50%;background:#fff;margin:0 auto 8px;box-shadow:0 6px 14px -8px rgba(60,70,30,.45);color:var(--accent-t)}
+.why2 .wi svg{width:27px;height:27px;stroke-width:1.7}
+/* ---- связь с кафе ---- */
+.cways{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.cway{display:flex;align-items:center;gap:14px;background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:12px 14px;text-align:left;color:var(--ink);text-decoration:none;width:100%}
+.cway:active{background:var(--olive-bg)}
+.cway .ci2{width:46px;height:46px;border-radius:50%;background:var(--olive-bg);color:var(--accent-t);display:grid;place-items:center;flex:none}
+.cway b{display:block;font-size:15px}
+.cway small{display:block;color:var(--mute);font-size:12.5px;margin-top:2px}
+.sheet .sub{color:var(--mute);font-size:13px;margin:-4px 0 12px}
+.linkbtn{display:block;margin:14px auto 0;color:var(--accent-t);font-weight:600;font-size:13.5px;text-decoration:underline;text-underline-offset:3px}
+/* ---- оформление: адрес и карта ---- */
+.dcard{background:#fff;border:1.5px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px}
+.dcard h3{font-size:19px;font-weight:800}
+.dcard>p{color:var(--mute);margin:6px 0 14px;font-size:13.5px}
+.addr{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px;background:var(--bg)}
+.addr svg{margin-top:2px;color:var(--ink)}
+.addr b{display:block;font-size:15px;margin-bottom:2px}
+.addr input{width:100%;border:0;background:transparent;outline:0;padding:2px 0;color:var(--ink);font-size:14.5px}
+.dcard .btn{height:auto;min-height:48px;padding:10px 12px;text-transform:none;font-size:14.5px;line-height:1.2;margin-bottom:10px;letter-spacing:0}
+.dcard .maphint{margin:2px 2px 0}
+#mapPage{z-index:70}
+.mapwrap{display:flex;flex-direction:column;height:100%}
+.mtop{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg)}
+.mtop b{flex:1;font-size:17px}
+.mtop .pill{margin:0}
+#pickMap{flex:1;min-height:0;z-index:1}
+.mbot{padding:12px 16px calc(16px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line)}
+.paddr{font-size:13.5px;color:#555;margin-bottom:10px;min-height:36px}
+.pin{background:none;border:0}
+.pin svg{width:36px;height:36px;fill:var(--accent-t);stroke:#fff;stroke-width:1.5}
+.pin circle{fill:#fff}
+.toast{width:max-content;max-width:calc(100vw - 32px)}
+</style>
+</head>
+<body data-tab="home">
+<div id="app"><div class="spin">Загрузка…</div></div>
+<div id="bar"></div>
+<nav><div id="nav"></div></nav>
+<div class="page" id="checkout"><div class="in" id="coIn"></div></div>
+<div class="page" id="mapPage"></div>
+<div class="sheet-bg" id="sheetBg"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInp" accept="image/*" hidden>
+
+<script>
+const tg = window.Telegram && Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#faf7f2'); tg.setBackgroundColor('#faf7f2'); } catch (e) {} }
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- иконки ---------- */
+const P = {
+  home:'<path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
+  menu:'<path d="M4 6h16M4 12h16M4 18h10"/>',
+  cart:'<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/>',
+  orders:'<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6M9 16h6"/>',
+  phone:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+  set:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+  trash:'<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  back:'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>', minus:'<path d="M5 12h14"/>',
+  arrow:'<path d="M5 12h14M12 5l7 7-7 7"/>',
+  pin:'<path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>',
+  check:'<path d="M20 6L9 17l-5-5"/>',
+  truck:'<rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  cam:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  edit:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  x:'<path d="M18 6L6 18M6 6l12 12"/>',
+  loc:'<circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>',
+  bag:'<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+  doc:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/>',
+  heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>',
+  send:'<path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>',
+  chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  map:'<path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4z"/><path d="M8 2v16M16 6v16"/>',
+  nav:'<path d="M3 11l19-9-9 19-2-8z"/>',
+};
+const ic = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24">${P[n]}</svg>`;
+
+/* ---------- состояние ---------- */
+const store = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+const S = { menu: null, me: null, tab: 'home', cat: null, q: '', cart: store.get('cart', {}), orders: [],
+            adm: null, isAdminView: new URLSearchParams(location.search).has('admin'), co: null, map: null, marker: null, poll: null };
+const CAT_EMOJI = { 'салат': '🥗', 'суп': '🍲', 'горяч': '🍖', 'гарнир': '🍚', 'десерт': '🍰', 'напит': '🥤', 'пицц': '🍕', 'бургер': '🍔', 'выпеч': '🥐' };
+const emoji = c => { c = (c || '').toLowerCase(); for (const k in CAT_EMOJI) if (c.includes(k)) return CAT_EMOJI[k]; return '🍽'; };
+
+function money(n) {
+  const cur = S.menu?.currency || 'руб.';
+  const s = Number.isInteger(+n) ? String(+n) : (+n).toFixed(2).replace('.', ',');
+  return `${s} ${cur}`;
+}
+function toast(msg, err, ms) {
+  const t = $('#toast'); t.textContent = msg; t.className = 'toast on' + (err ? ' err' : '');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.className = 'toast', ms || (err ? 4500 : 2600));
+}
+async function api(path, body) {
+  const headers = { 'X-Init-Data': tg?.initData || '' };
+  let payload;
+  if (body instanceof FormData) payload = body;
+  else if (body) { headers['Content-Type'] = 'application/json'; payload = JSON.stringify(body); }
+  const r = await fetch(path, { method: body ? 'POST' : 'GET', headers, body: payload });
+  let j = {}; try { j = await r.json(); } catch {}
+  if (!r.ok) throw new Error(j.error || 'Ошибка ' + r.status);
+  return j;
+}
+const allItems = () => S.menu ? S.menu.categories.flatMap(c => c.items) : [];
+const itemById = id => allItems().find(i => i.id === id);
+const qty = id => S.cart[id] || 0;
+const cartCount = () => Object.values(S.cart).reduce((a, b) => a + b, 0);
+const cartTotal = () => Object.entries(S.cart).reduce((a, [id, q]) => { const it = itemById(+id); return a + (it && it.available ? it.price * q : 0); }, 0);
+const saveCart = () => store.set('cart', S.cart);
+const img = (it, cls = '') => it.image ? `<img src="${esc(it.image)}" alt="" loading="lazy" onerror="this.replaceWith(document.createTextNode('${emoji(it.category)}'))">` : emoji(it.category);
+
+/* ---------- каркас ---------- */
+function renderNav() {
+  const tabs = [['home', 'home', 'Главная'], ['menu', 'menu', 'Меню'], ['cart', 'cart', 'Корзина'], ['orders', 'orders', 'Заказы']];
+  if (S.me?.is_admin) tabs.push(['admin', 'set', 'Админ']);
+  const n = cartCount();
+  $('#nav').innerHTML = tabs.map(([k, i, l]) =>
+    `<button data-go="${k}" class="${S.tab === k ? 'on' : ''}">${ic(i)}${l}${k === 'cart' && n ? `<span class="badge">${n}</span>` : ''}</button>`).join('');
+}
+function go(tab) {
+  S.tab = tab; document.body.dataset.tab = tab;
+  clearInterval(S.poll);
+  window.scrollTo(0, 0);
+  render();
+  if (tab === 'orders') { loadOrders(); S.poll = setInterval(loadOrders, 10000); }
+  if (tab === 'admin') loadAdmin();
+}
+function render() {
+  renderNav();
+  ({ home: rHome, menu: rMenu, cart: rCart, orders: rOrders, admin: rAdmin }[S.tab])();
+  renderBar();
+}
+function renderBar() {
+  const n = cartCount();
+  $('#bar').innerHTML = (S.tab === 'menu' && n) ?
+    `<div class="cartbar"><button class="btn red" data-go="cart"><span>${ic('cart')} Корзина · ${n}</span><span>${money(cartTotal())}</span></button></div>` : '';
+}
+
+/* ---------- главная ---------- */
+// веточка-декор и иллюстрация салата: показываются, пока у блюд нет фото (или фото не загрузилось)
+const sprig = cls => `<svg class="sprig ${cls}" viewBox="0 0 60 100" fill="none" aria-hidden="true"><path d="M30 98C27 66 29 34 36 4" stroke="#667048" stroke-width="2" stroke-linecap="round"/><g fill="#8a9468"><ellipse cx="20" cy="76" rx="13" ry="5.5" transform="rotate(-38 20 76)"/><ellipse cx="40" cy="66" rx="13" ry="5.5" transform="rotate(34 40 66)"/><ellipse cx="19" cy="52" rx="12" ry="5" transform="rotate(-40 19 52)"/><ellipse cx="41" cy="42" rx="12" ry="5" transform="rotate(36 41 42)"/><ellipse cx="22" cy="28" rx="10" ry="4.5" transform="rotate(-42 22 28)"/><ellipse cx="38" cy="18" rx="9" ry="4" transform="rotate(38 38 18)"/></g></svg>`;
+function saladSvg() {
+  const gr = ['#7f9d57', '#93b165', '#6b8a49', '#a2bc78'];
+  let s = '<circle cx="100" cy="100" r="98" fill="#fffefa"/><circle cx="100" cy="100" r="84" fill="none" stroke="#eeead9" stroke-width="3"/>';
+  for (let i = 0; i < 9; i++) s += `<ellipse cx="100" cy="66" rx="15" ry="27" fill="${gr[i % 4]}" transform="rotate(${i * 40} 100 100)"/>`;
+  for (let i = 0; i < 9; i++) s += `<ellipse cx="100" cy="80" rx="10" ry="18" fill="${gr[(i + 2) % 4]}" opacity=".9" transform="rotate(${i * 40 + 20} 100 100)"/>`;
+  [[62, 72], [140, 64], [68, 134], [142, 132]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="11" fill="#d94a3a"/><circle cx="${x - 3.5}" cy="${y - 3.5}" r="3" fill="#f6b3a8"/>`; });
+  [[112, 98, 20], [84, 112, -15], [96, 84, 35]].forEach(([x, y, a]) => { s += `<rect x="${x - 7}" y="${y - 7}" width="14" height="14" rx="2" fill="#fffdf4" stroke="#e6dfc6" transform="rotate(${a} ${x} ${y})"/>`; });
+  s += '<circle cx="100" cy="100" r="8" fill="#56733a"/>';
+  return `<svg viewBox="0 0 200 200" aria-hidden="true">${s}</svg>`;
+}
+function rHome() {
+  const m = S.menu, items = allItems().filter(i => i.available);
+  const hits = items.filter(i => i.hit);
+  // хиты, отмеченные в админке; если не отмечены — показываем блюда (сначала с фото)
+  const pool = hits.length ? hits : [...items.filter(i => i.image), ...items.filter(i => !i.image)];
+  const favs = pool.slice(0, 8);
+  $('#app').innerHTML = `
+  <div class="hhead"><img src="/static/logo.png" alt="">
+    <div class="t"><b>${esc(m.cafe)}</b><span>Кафе и доставка ${ic('heart')}</span></div>
+    <button class="ic soft" data-contact aria-label="Связаться с кафе">${ic('phone')}</button></div>
+  <div class="hb">
+    <div class="tx"><h1>Домашняя кухня<br>с любовью ${ic('heart')}</h1>
+      <button class="btn red" data-go="menu">Перейти к меню ${ic('arrow')}</button></div>
+    <div class="plate2"><i class="ring"></i>
+      <div class="disc">${saladSvg()}<img src="/static/banner.jpg" alt="" onerror="this.remove()"></div>
+      ${sprig('s1')}${sprig('s2')}
+      <div class="stamp">${ic('truck')}<span>ГОРЯЧО<br>И БЫСТРО</span></div></div>
+  </div>
+  ${!m.orders_open ? `<div class="rej" style="margin-top:12px">Сейчас приём заказов закрыт</div>` : ''}
+  ${favs.length ? `<div class="sh"><h2>Хиты продаж <span>🌿</span></h2><button class="more" data-go="menu">Все блюда ${ic('arrow')}</button></div>
+  <div class="hscroll">${favs.map(i => `
+    <div class="hit"><div class="im">${img(i)}</div><h4>${esc(i.name)}</h4>
+      <div class="row"><b>${money(i.price)}</b><button class="add" data-quick="${i.id}" aria-label="В корзину">${ic('plus')}</button></div></div>`).join('')}</div>` : ''}
+  <div class="why2"><h3>Почему выбирают нас?</h3><div class="g">
+    <div><span class="wi">${ic('truck')}</span>Быстрая<br>доставка</div><div><span class="wi">${ic('home')}</span>Домашняя<br>кухня</div>
+    <div><span class="wi">${ic('heart')}</span>С любовью<br>к каждому</div><div><span class="wi">${ic('clock')}</span>Работаем<br>каждый день</div></div></div>
+  <button class="btn line block" data-contact>${ic('phone')} Связаться с кафе</button>`;
+}
+
+/* ---------- связь с кафе: чат в боте / звонок / Telegram администратора ---------- */
+const isDesktopTg = () => !!tg && ['tdesktop', 'macos', 'weba', 'webk', 'web'].includes(tg.platform);
+function openTg(url) { if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, '_blank'); }
+async function copyText(s) {
+  try { await navigator.clipboard.writeText(s); return true; } catch {}
+  try {
+    const ta = document.createElement('textarea'); ta.value = s; ta.style.cssText = 'position:fixed;opacity:0;top:0';
+    document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return ok;
+  } catch { return false; }
+}
+function openContact() {
+  const m = S.menu, phone = m.phone || '', tel = phone.replace(/[^\d+]/g, ''),
+        nick = (m.admin_username || '').replace(/^@/, ''), bot = m.bot_username || '';
+  openSheet(`<h3>Связаться с кафе<button class="ic plain" data-sclose>${ic('x')}</button></h3>
+  <p class="sub">Выберите, как вам удобнее</p>
+  <div class="cways">
+    ${bot ? `<button class="cway" data-chat><span class="ci2">${ic('chat')}</span><span><b>Чат с администратором</b><small>Напишите в боте — ответ придёт туда же</small></span></button>` : ''}
+    ${phone ? `<a class="cway" href="tel:${esc(tel)}" data-tel="${esc(phone)}"><span class="ci2">${ic('phone')}</span><span><b>Позвонить</b><small>${esc(phone)}</small></span></a>` : ''}
+    ${nick ? `<button class="cway" data-tglink="${esc(nick)}"><span class="ci2">${ic('send')}</span><span><b>Написать в Telegram</b><small>@${esc(nick)}</small></span></button>` : ''}
+  </div>
+  ${phone ? `<button class="pill" style="display:flex;margin:0 auto" data-copy="${esc(phone)}">Скопировать номер</button>` : ''}`);
+}
+
+/* ---------- меню ---------- */
+function ctl(it) {
+  if (!it.available) return '';
+  const q = qty(it.id);
+  return q ? `<div class="step"><button data-dec="${it.id}">${ic('minus')}</button><span>${q}</span><button data-inc="${it.id}">${ic('plus')}</button></div>`
+           : `<button class="add" data-inc="${it.id}">${ic('plus')}</button>`;
+}
+function dishHtml(it) {
+  return `<div class="dish ${it.available ? '' : 'off'}" data-dish="${it.id}">
+    ${it.hit && it.available ? '<span class="tag">Хит</span>' : ''}${!it.available ? '<span class="tag stop">Нет в наличии</span>' : ''}
+    <div class="ph">${img(it)}</div>
+    <div class="info"><h3>${esc(it.name)}</h3>${it.desc ? `<p>${esc(it.desc)}</p>` : ''}
+      <div class="row"><span class="price">${money(it.price)}</span><span class="ctl">${ctl(it)}</span></div></div></div>`;
+}
+function rMenu() {
+  const cats = S.menu.categories;
+  if (!S.cat || !cats.find(c => c.name === S.cat)) S.cat = cats[0]?.name;
+  $('#app').innerHTML = `
+  <div class="top"><button class="ic plain" data-go="home">${ic('back')}</button><h2>Меню</h2><button class="ic plain" data-search>${ic('search')}</button></div>
+  <div class="search ${S.q ? 'on' : ''}" id="sBox"><input id="sInp" placeholder="Найти блюдо…" value="${esc(S.q)}"></div>
+  <div class="chips" id="chips">${cats.map(c => `<button class="chip ${c.name === S.cat ? 'on' : ''}" data-cat="${esc(c.name)}">${esc(c.name)}</button>`).join('')}</div>
+  <div id="list"></div>`;
+  renderList();
+}
+function renderList() {
+  let items;
+  if (S.q) items = allItems().filter(i => (i.name + ' ' + i.desc).toLowerCase().includes(S.q.toLowerCase()));
+  else items = S.menu.categories.find(c => c.name === S.cat)?.items || [];
+  $('#list').innerHTML = items.length ? items.map(dishHtml).join('') : `<div class="empty"><div class="big">🔍</div>Ничего не найдено</div>`;
+}
+function bump(id, d) {
+  const it = itemById(id); if (!it || !it.available) return;
+  const q = Math.max(0, Math.min(50, qty(id) + d));
+  if (q) S.cart[id] = q; else delete S.cart[id];
+  saveCart(); renderNav(); renderBar();
+  if (S.tab === 'menu') { const el = document.querySelector(`[data-dish="${id}"] .ctl`); if (el) el.innerHTML = ctl(it); }
+  if (S.tab === 'cart') rCart();
+  tg?.HapticFeedback?.selectionChanged?.();
+}
+
+/* ---------- корзина ---------- */
+function rCart() {
+  const lines = Object.entries(S.cart).map(([id, q]) => ({ it: itemById(+id), q })).filter(l => l.it && l.it.available);
+  const m = S.menu;
+  if (!lines.length) {
+    $('#app').innerHTML = `<div class="top"><button class="ic plain" data-go="menu">${ic('back')}</button><h2>Корзина</h2><span style="width:42px"></span></div>
+      <div class="empty"><div class="big">🛒</div>Корзина пуста<br><br><button class="btn red" data-go="menu">Перейти в меню</button></div>`;
+    return;
+  }
+  const total = cartTotal();
+  const low = total < m.min_delivery;
+  $('#app').innerHTML = `
+  <div class="top"><button class="ic plain" data-go="menu">${ic('back')}</button><h2>Корзина</h2>
+    <button class="ic plain" data-clear title="Очистить">${ic('trash')}</button></div>
+  ${lines.map(({ it, q }) => `<div class="cl"><div class="ph">${img(it)}</div>
+    <div class="t"><b>${esc(it.name)}</b><span>${money(it.price * q)}</span></div>
+    <div class="step"><button data-dec="${it.id}">${ic('minus')}</button><span>${q}</span><button data-inc="${it.id}">${ic('plus')}</button></div></div>`).join('')}
+  <div class="sum"><div class="r"><span>Сумма заказа</span><span>${money(total)}</span></div>
+    <div class="r t"><span>Итого</span><b>${money(total)}</b></div></div>
+  <div class="note ${low ? 'warn' : ''}">${low ? `Минимальная сумма доставки — ${money(m.min_delivery)}. Самовывоз — без минимума.` : 'Стоимость доставки уточнит администратор'}</div>
+  ${m.orders_open ? `<button class="btn red block" data-checkout>Оформить заказ ${ic('arrow')}</button>` : `<div class="rej">Сейчас приём заказов закрыт</div>`}
+  <button class="linkbtn" data-contact>Есть вопросы? Связаться с кафе</button>`;
+}
+
+/* ---------- оформление ---------- */
+function openCheckout() {
+  const prof = store.get('profile', {});
+  S.co = { ...prof, type: 'delivery', object_type: prof.object_type === 'Помещение' ? 'Помещение' : 'Квартира', lat: null, lon: null, map_address: '' };
+  const c = S.co, room = c.object_type === 'Помещение';
+  $('#coIn').innerHTML = `
+  <div class="top"><button class="ic plain" data-coclose>${ic('back')}</button><h2>Оформление</h2><span style="width:42px"></span></div>
+  <div class="seg" id="coType"><button data-t="delivery" class="on">🚚 Доставка</button><button data-t="pickup">🏃 Самовывоз</button></div>
+  <label class="f"><span>Ваше имя</span><input id="cName" value="${esc(c.name || tg?.initDataUnsafe?.user?.first_name || '')}" maxlength="60"></label>
+  <label class="f"><span>Телефон</span><input id="cPhone" type="tel" inputmode="tel" placeholder="+375 …" value="${esc(c.phone || '')}" maxlength="30"></label>
+  <div id="delBox">
+    <div class="seg" id="objType"><button data-o="Квартира" class="${room ? '' : 'on'}">🏠 Квартира</button><button data-o="Помещение" class="${room ? 'on' : ''}">🏢 Помещение</button></div>
+    <div class="dcard">
+      <h3>Куда доставить заказ?</h3>
+      <p>Укажите адрес, чтобы мы смогли привезти ваш заказ</p>
+      <label class="addr">${ic('pin')}<span style="flex:1;min-width:0"><b>Адрес доставки</b><input id="cAddr" placeholder="Улица, дом, населённый пункт" value="${esc(c.address || '')}" maxlength="250" autocomplete="off"></span></label>
+      <button class="btn red block" data-locate>${ic('nav')} Определить моё местоположение</button>
+      <button class="btn line block" data-pickmap>${ic('map')} Выбрать точку на карте</button>
+      <div class="maphint" id="mapHint"></div>
+    </div>
+    <div class="two"><label class="f"><span id="unitLbl">${room ? 'Помещение №' : 'Квартира №'}</span><input id="cUnit" value="${esc(c.unit || '')}" maxlength="30"></label>
+      <label class="f"><span>Подъезд</span><input id="cEnt" value="${esc(c.ent || '')}" maxlength="20"></label></div>
+    <div class="two"><label class="f"><span>Этаж</span><input id="cFloor" value="${esc(c.floor || '')}" maxlength="20"></label>
+      <label class="f"><span>Код домофона</span><input id="cInter" value="${esc(c.inter || '')}" maxlength="40"></label></div>
+    <label class="f" id="placeWrap" ${room ? '' : 'hidden'}><span>Название помещения (необязательно)</span><input id="cPlace" placeholder="Например: офис «Ромашка»" value="${esc(c.place || '')}" maxlength="80"></label>
+  </div>
+  <label class="f"><span>Комментарий</span><textarea id="cCom" rows="2" maxlength="300" placeholder="Например: позвоните за 10 минут"></textarea></label>
+  <div class="sum"><div class="r t"><span>Итого</span><b>${money(cartTotal())}</b></div></div>
+  <button class="btn red block" id="coSend">Подтвердить заказ</button>
+  <button class="linkbtn" data-contact>Есть вопросы? Связаться с кафе</button>`;
+  updateHint();
+  $('#checkout').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closeCheckout() { $('#checkout').classList.remove('on'); document.body.style.overflow = ''; closeMap(); }
+
+/* --- адрес и геолокация --- */
+function updateHint() {
+  const h = $('#mapHint'); if (!h) return;
+  if (S.co.lat != null) { h.className = 'maphint ok'; h.innerHTML = ic('check') + '<span>Точка на карте отмечена</span>'; }
+  else { h.className = 'maphint'; h.innerHTML = ic('pin') + '<span>Точку на карте можно не ставить — достаточно адреса. С точкой курьеру проще вас найти.</span>'; }
+}
+function setPoint(lat, lon) { S.co.lat = lat; S.co.lon = lon; updateHint(); }
+function applyAddr(a) {
+  if (!a) return;
+  S.co.map_address = a.full || '';
+  const inp = $('#cAddr'); if (inp && a.short) inp.value = a.short;
+}
+async function geoFetch(url) {
+  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 7000);
+  try { const r = await fetch(url, { signal: ctl.signal }); return r.ok ? await r.json() : null; }
+  catch { return null; } finally { clearTimeout(to); }
+}
+async function reverseGeocode(lat, lon) {
+  const j = await geoFetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=ru&zoom=18&addressdetails=1&lat=${lat}&lon=${lon}`);
+  if (!j || j.error) return null;
+  const a = j.address || {}, road = a.road || a.pedestrian || a.footway || a.neighbourhood || a.suburb || '',
+        place = a.city || a.town || a.village || a.hamlet || '';
+  const short = [(road + ' ' + (a.house_number || '')).trim(), place].filter(Boolean).join(', ');
+  return { short, full: j.display_name || short };
+}
+async function forwardGeocode(q) {
+  const [la, lo] = S.menu.map;
+  const j = await geoFetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=ru&q=${encodeURIComponent(q)}&viewbox=${lo - 1},${la + 0.7},${lo + 1},${la - 0.7}`);
+  return j && j[0] ? { lat: +j[0].lat, lon: +j[0].lon } : null;
+}
+// Сначала родной LocationManager Telegram (Bot API 8.0+), затем геолокация браузера. Ошибки не фатальны.
+function getPosition() {
+  const viaBrowser = () => new Promise((ok, no) => {
+    if (!navigator.geolocation) return no({ code: 0 });
+    navigator.geolocation.getCurrentPosition(p => ok({ lat: p.coords.latitude, lon: p.coords.longitude }), e => no(e),
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+  });
+  const LM = tg && tg.LocationManager;
+  const viaTelegram = () => new Promise((ok, no) => {
+    const ask = () => LM.getLocation(loc => loc && loc.latitude != null ? ok({ lat: loc.latitude, lon: loc.longitude }) : no({ code: 1 }));
+    if (LM.isInited) ask(); else LM.init(() => (LM.isLocationAvailable ? ask() : no({ code: 0 })));
+  });
+  const run = (LM && tg.isVersionAtLeast && tg.isVersionAtLeast('8.0'))
+    ? viaTelegram().catch(e => viaBrowser().catch(() => { throw e; }))
+    : viaBrowser();
+  return Promise.race([run, new Promise((_, no) => setTimeout(() => no({ code: 3 }), 20000))]);
+}
+function geoErr(e) {
+  if (e && e.code === 1) return 'Нет доступа к геолокации. Разрешите её для Telegram в настройках телефона или впишите адрес вручную';
+  if (e && e.code === 3) return 'Не удалось быстро определить место. Впишите адрес или выберите точку на карте';
+  return 'Не удалось определить местоположение. Впишите адрес вручную или выберите точку на карте';
+}
+async function locate(btn) {
+  const old = btn.innerHTML; btn.disabled = true; btn.textContent = 'Определяем…';
+  try {
+    const p = await getPosition();
+    setPoint(p.lat, p.lon);
+    const a = await reverseGeocode(p.lat, p.lon);
+    if (a && a.short) { applyAddr(a); toast('Местоположение определено ✓'); }
+    else toast('Точка отмечена, но адрес подставить не удалось — впишите его вручную', 1);
+  } catch (e) { toast(geoErr(e), 1); }
+  finally { btn.disabled = false; btn.innerHTML = old; }
+}
+
+/* --- выбор точки на карте --- */
+const pinIcon = () => L.divIcon({ className: 'pin', html: ic('pin'), iconSize: [36, 36], iconAnchor: [18, 34] });
+function buildMapPage() {
+  if (S.mapBuilt) return; S.mapBuilt = true;
+  $('#mapPage').innerHTML = `<div class="mapwrap">
+    <div class="mtop"><button class="ic plain" data-mapback>${ic('back')}</button><b>Точка доставки</b><button class="pill" data-maplocate>${ic('nav')} Где я</button></div>
+    <div id="pickMap"></div>
+    <div class="mbot"><div class="paddr" id="pickAddr">Нажмите на карту, чтобы поставить метку</div>
+      <button class="btn red block" id="mapOk" data-mapok disabled>Подтвердить точку</button></div></div>`;
+}
+async function openMapPicker() {
+  if (!window.L) return toast('Карта не загрузилась. Впишите адрес вручную или нажмите «Определить моё местоположение»', 1);
+  buildMapPage();
+  $('#mapPage').classList.add('on');
+  await new Promise(r => setTimeout(r, 60)); // дождаться, пока страница станет видимой
+  const [la, lo] = S.menu.map;
+  if (!S.map) {
+    S.map = L.map('pickMap', { zoomControl: true, attributionControl: false }).setView([la, lo], 13);
+    L.control.attribution({ prefix: false }).addTo(S.map);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(S.map);
+    S.map.on('click', e => placeMarker(e.latlng.lat, e.latlng.lng));
+  }
+  S.map.invalidateSize();
+  if (S.co.lat != null) return placeMarker(S.co.lat, S.co.lon, 17);
+  S.pick = null;
+  if (S.marker) { S.map.removeLayer(S.marker); S.marker = null; }
+  $('#mapOk').disabled = true; $('#pickAddr').textContent = 'Нажмите на карту, чтобы поставить метку';
+  const q = ($('#cAddr')?.value || '').trim();
+  if (q.length >= 4) { const p = await forwardGeocode(q); if (p && !S.pick) S.map.setView([p.lat, p.lon], 17); }
+}
+async function placeMarker(lat, lon, zoom) {
+  S.pick = { lat, lon, addr: null };
+  if (!S.marker) {
+    S.marker = L.marker([lat, lon], { draggable: true, icon: pinIcon() }).addTo(S.map);
+    S.marker.on('dragend', () => { const p = S.marker.getLatLng(); placeMarker(p.lat, p.lng); });
+  } else S.marker.setLatLng([lat, lon]);
+  if (zoom) S.map.setView([lat, lon], zoom);
+  $('#mapOk').disabled = false;
+  const box = $('#pickAddr'); box.textContent = 'Определяем адрес…';
+  const tok = (S.geoTok = (S.geoTok || 0) + 1);
+  const a = await reverseGeocode(lat, lon);
+  if (tok !== S.geoTok || !S.pick) return;
+  S.pick.addr = a;
+  box.textContent = a ? a.full : 'Адрес не определился — точка сохранится, адрес впишите вручную';
+}
+function confirmMap() {
+  if (!S.pick) return;
+  setPoint(S.pick.lat, S.pick.lon);
+  if (S.pick.addr) applyAddr(S.pick.addr); else S.co.map_address = '';
+  closeMap(); toast('Точка выбрана ✓');
+}
+function closeMap() { $('#mapPage').classList.remove('on'); }
+async function mapLocate(btn) {
+  btn.disabled = true;
+  try { const p = await getPosition(); placeMarker(p.lat, p.lon, 17); } catch (e) { toast(geoErr(e), 1); }
+  finally { btn.disabled = false; }
+}
+
+async function sendOrder() {
+  const c = S.co, delivery = c.type === 'delivery', btn = $('#coSend');
+  const name = $('#cName').value.trim(), phone = $('#cPhone').value.trim();
+  if (!name || phone.length < 5) return toast('Заполните имя и телефон', 1);
+  const body = { type: c.type, name, phone, comment: $('#cCom').value.trim(),
+    items: Object.entries(S.cart).map(([id, q]) => ({ id: +id, qty: q })) };
+  if (delivery) {
+    Object.assign(body, { address: $('#cAddr').value.trim(), object_type: c.object_type, unit_number: $('#cUnit').value.trim(),
+      entrance: $('#cEnt').value.trim(), floor: $('#cFloor').value.trim(), intercom: $('#cInter').value.trim(),
+      place_name: c.object_type === 'Помещение' ? $('#cPlace').value.trim() : '',
+      latitude: c.lat, longitude: c.lon, map_address: c.map_address });
+    if (!body.address) return toast('Укажите адрес доставки', 1);
+    if (!body.unit_number) return toast('Укажите номер квартиры или помещения', 1);
+    if (cartTotal() < S.menu.min_delivery) return toast(`Минимум для доставки — ${money(S.menu.min_delivery)}`, 1);
+  }
+  btn.disabled = true; btn.textContent = 'Отправляем…';
+  try {
+    const r = await api('/api/order', body);
+    store.set('profile', { name, phone, address: body.address, unit: body.unit_number, ent: body.entrance, floor: body.floor,
+      inter: body.intercom, place: body.place_name || '', object_type: c.object_type });
+    S.cart = {}; saveCart(); closeCheckout(); go('orders');
+    if (r.notified === false) toast('Заказ сохранён, но администратору не удалось отправить уведомление. Пожалуйста, позвоните в кафе', 1, 8000);
+    else toast('Заказ отправлен ✓');
+  } catch (e) { toast(e.message, 1); btn.disabled = false; btn.textContent = 'Подтвердить заказ'; }
+}
+
+/* ---------- заказы ---------- */
+async function loadOrders() {
+  try { S.orders = await api('/api/orders'); } catch (e) { if (S.tab === 'orders' && !S.orders.length) $('#app').innerHTML = `<div class="empty">Откройте приложение через Telegram</div>`; return; }
+  if (S.tab === 'orders') rOrders();
+}
+const fmtT = t => new Date(t * 1000).toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'long' });
+function orderCard(o) {
+  const del = o.type === 'delivery', rank = { new: 0, accepted: 1, ready: 2 }[o.status];
+  const steps = [
+    ['orders', 'Заказ получен', fmtT(o.created)],
+    ['bag', 'Принят, готовится', o.status === 'new' ? 'Ждём подтверждения администратора' : 'Уже на кухне'],
+    [del ? 'truck' : 'check', del ? 'Передан курьеру' : 'Готов к выдаче', o.status === 'ready' ? (del ? 'Курьер выехал к вам' : 'Можно забирать') : 'Следующий шаг'],
+  ];
+  return `<div class="ord"><div class="inv">Заказ №${o.num ?? o.id}</div>
+  ${o.status === 'rejected' ? `<div class="rej">❌ Заказ не удалось принять. Свяжитесь с нами.</div>` : `<div class="tl">${steps.map((s, i) => {
+    const cls = i < rank ? 'done' : i === rank ? 'done' : 'todo';
+    return `<div class="st ${cls}"><div class="dot">${ic(s[0])}</div><div><b>${s[1]}</b><small>${i === rank || i === 0 ? ic('clock').replace('class="i ', 'style="width:13px;height:13px" class="i ') : ''}${esc(s[2])}</small></div></div>`;
+  }).join('')}</div>`}
+  <div class="det">${o.items.map(i => `<div><span>${esc(i.name)} × ${i.qty}</span><span>${money(i.price * i.qty)}</span></div>`).join('')}
+    <div style="border-top:1px dashed #cfe0d8;margin-top:6px;padding-top:6px"><b>Итого</b><b>${money(o.total)}</b></div>
+    <div><span>${del ? '🚚 ' + esc(o.address) : '🏃 Самовывоз'}</span></div>${o.place_name ? `<div><span>🏷 ${esc(o.place_name)}</span></div>` : ''}</div>
+  <div class="call"><button class="btn" data-contact>${ic('phone')} Связаться с кафе</button></div></div>`;
+}
+function rOrders() {
+  $('#app').innerHTML = `
+  <div class="top"><button class="ic plain" data-go="home">${ic('back')}</button><h2>Заказы</h2><span style="width:42px"></span></div>
+  ${S.orders.length ? S.orders.map(orderCard).join('') : `<div class="empty"><div class="big">🧾</div>Заказов пока нет</div>`}`;
+}
+
+/* ---------- админка ---------- */
+async function loadAdmin() {
+  try { S.adm = await api('/api/admin/menu'); } catch (e) { $('#app').innerHTML = `<div class="empty">Нет доступа</div>`; return; }
+  rAdmin();
+}
+function rAdmin() {
+  const a = S.adm;
+  if (!a) { $('#app').innerHTML = '<div class="spin">Загрузка…</div>'; return; }
+  const groups = {}; a.items.forEach(i => (groups[i.category] ||= []).push(i));
+  $('#app').innerHTML = `<div class="adm">
+  <div class="top"><button class="ic plain" data-go="home">${ic('back')}</button><h2>Управление меню</h2><span style="width:42px"></span></div>
+  <div class="opn"><div><b>Приём заказов</b><div style="color:var(--mute);font-size:12.5px">${a.orders_open ? 'Открыт' : 'Закрыт'}</div></div><button class="sw ${a.orders_open ? 'on' : ''}" data-aopen></button></div>
+  <div class="cta" style="margin-top:0"><button class="btn red" style="flex:1" data-aedit="0">${ic('plus')} Блюдо</button><button class="btn line" style="flex:1" data-aimport>Импорт текстом</button></div>
+  ${Object.entries(groups).map(([cat, its]) => `<div class="catname">${esc(cat)}</div>` + its.map(it => `
+    <div class="dish ${it.available ? '' : 'off'}">
+      <button class="ph" data-aphoto="${it.id}">${img(it)}<span class="cam">${ic('cam')}</span></button>
+      <div class="info"><h3>${esc(it.name)}</h3><p>${it.hit ? '⭐ Хит · ' : ''}${it.image ? '' : 'нет фото · '}${it.available ? 'в наличии' : 'на стопе'}</p>
+        <div class="row"><span class="price">${money(it.price)}</span>
+          <div class="acts"><button data-atoggle="${it.id}" title="Стоп">${ic(it.available ? 'check' : 'x')}</button><button data-aedit="${it.id}">${ic('edit')}</button></div></div></div></div>`).join('')).join('')}
+  </div>`;
+}
+function openSheet(html) { $('#sheet').innerHTML = html; $('#sheetBg').classList.add('on'); }
+function closeSheet() { $('#sheetBg').classList.remove('on'); }
+let EDIT = null;
+function photoBox() {
+  return `<div class="photo ${EDIT.image ? 'has' : ''}" id="phBox" data-pick>${EDIT.image ? `<img src="${esc(EDIT.image)}" alt="">` : ''}
+    <div class="pl">${ic('cam')}<div>Нажмите, чтобы добавить фото</div></div></div>
+    ${EDIT.image ? `<div style="display:flex;gap:8px;margin:-2px 0 10px"><button class="pill" data-pick>${ic('cam')} Заменить</button><button class="pill" style="border-color:var(--accent-t);color:var(--accent-t)" data-rmphoto>Убрать фото</button></div>` : ''}`;
+}
+function openEdit(id) {
+  const it = id ? S.adm.items.find(i => i.id === id) : null;
+  EDIT = it ? { ...it } : { id: 0, category: S.cat || S.adm.items[0]?.category || '', name: '', desc: '', price: '', available: true, hit: false, image: '' };
+  const cats = [...new Set(S.adm.items.map(i => i.category))];
+  openSheet(`<h3>${it ? 'Редактировать' : 'Новое блюдо'}<button class="ic plain" data-sclose>${ic('x')}</button></h3>
+  <div id="phWrap">${photoBox()}</div>
+  <label class="f"><span>Название</span><input id="eName" value="${esc(EDIT.name)}" maxlength="120"></label>
+  <div class="two"><label class="f"><span>Категория</span><input id="eCat" list="catList" value="${esc(EDIT.category)}" maxlength="60"><datalist id="catList">${cats.map(c => `<option value="${esc(c)}">`).join('')}</datalist></label>
+    <label class="f"><span>Цена, ${esc(S.menu.currency)}</span><input id="ePrice" type="number" inputmode="decimal" step="0.1" min="0" value="${EDIT.price}"></label></div>
+  <label class="f"><span>Описание (необязательно)</span><textarea id="eDesc" rows="2" maxlength="200">${esc(EDIT.desc)}</textarea></label>
+  <div class="chk"><label><input type="checkbox" id="eHit" ${EDIT.hit ? 'checked' : ''}> ⭐ Хит</label><label><input type="checkbox" id="eAv" ${EDIT.available ? 'checked' : ''}> В наличии</label></div>
+  <div style="display:flex;gap:10px"><button class="btn red" style="flex:1" id="eSave">Сохранить</button>
+  ${it ? `<button class="btn line" style="border-color:var(--accent-t);color:var(--accent-t)" data-adel="${it.id}">${ic('trash')}</button>` : ''}</div>`);
+}
+async function resizeImage(file, max = 1000) {
+  const url = URL.createObjectURL(file);
+  try {
+    const im = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error('Не удалось прочитать картинку')); i.src = url; });
+    const k = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
+    const c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+    return await new Promise(ok => c.toBlob(ok, 'image/jpeg', 0.85));
+  } finally { URL.revokeObjectURL(url); }
+}
+let pickCb = null;
+function pickFile(cb) { pickCb = cb; const f = $('#fileInp'); f.value = ''; f.click(); }
+async function uploadFile(file) {
+  const blob = await resizeImage(file);
+  const fd = new FormData(); fd.append('file', blob, 'dish.jpg');
+  return (await api('/api/admin/upload', fd)).image;
+}
+async function reloadMenu() { S.menu = await api('/api/menu'); S.adm = await api('/api/admin/menu'); }
+
+/* ---------- события ---------- */
+document.addEventListener('click', async e => {
+  const t = e.target.closest('button,a,[data-pick],[data-dish]'); if (!t) return;
+  const d = t.dataset;
+  try {
+    // телефон: на мобильном Telegram откроется набор номера; на десктопе звонить нечем — копируем номер
+    if (t.matches('a[href^="tel:"]')) {
+      if (isDesktopTg()) { e.preventDefault(); await copyText(t.dataset.tel || t.getAttribute('href').slice(4)); toast('Номер скопирован — позвоните с телефона'); }
+      return;
+    }
+    if (d.hasOwnProperty('contact')) return openContact();
+    if (d.hasOwnProperty('chat')) { closeSheet(); return openTg(`https://t.me/${S.menu.bot_username}?start=contact`); }
+    if (d.tglink) { closeSheet(); return openTg(`https://t.me/${d.tglink}`); }
+    if (d.copy) { await copyText(d.copy); return toast('Номер скопирован ✓'); }
+    if (d.hasOwnProperty('pickmap')) return openMapPicker();
+    if (d.hasOwnProperty('mapback')) return closeMap();
+    if (d.hasOwnProperty('mapok')) return confirmMap();
+    if (d.hasOwnProperty('maplocate')) return mapLocate(t);
+    if (d.go) return go(d.go);
+    if (d.inc) return bump(+d.inc, 1);
+    if (d.dec) return bump(+d.dec, -1);
+    if (d.quick) { bump(+d.quick, 1); return toast('Добавлено в корзину'); }
+    if (d.cat) { S.cat = d.cat; S.q = ''; rMenu(); return t.scrollIntoView?.({ inline: 'center', block: 'nearest' }); }
+    if (d.hasOwnProperty('search')) { const b = $('#sBox'); b.classList.toggle('on'); if (b.classList.contains('on')) $('#sInp').focus(); else { S.q = ''; renderList(); } return; }
+    if (d.hasOwnProperty('clear')) { S.cart = {}; saveCart(); return render(); }
+    if (d.hasOwnProperty('checkout')) return openCheckout();
+    if (d.hasOwnProperty('coclose')) return closeCheckout();
+    if (d.t) { S.co.type = d.t; document.querySelectorAll('#coType button').forEach(b => b.classList.toggle('on', b === t)); $('#delBox').style.display = d.t === 'delivery' ? '' : 'none'; if (d.t === 'delivery') setTimeout(() => S.map?.invalidateSize(), 50); return; }
+    if (d.o) { S.co.object_type = d.o; document.querySelectorAll('#objType button').forEach(b => b.classList.toggle('on', b === t)); $('#unitLbl').textContent = d.o === 'Квартира' ? 'Квартира №' : 'Помещение №'; $('#placeWrap').hidden = d.o !== 'Помещение'; return; }
+    if (d.hasOwnProperty('locate')) return locate(t);
+    if (t.id === 'coSend') return sendOrder();
+    // админ
+    if (d.hasOwnProperty('aopen')) { await api('/api/admin/open', { open: !S.adm.orders_open }); await reloadMenu(); return rAdmin(); }
+    if (d.aedit !== undefined) return openEdit(+d.aedit);
+    if (d.hasOwnProperty('sclose')) return closeSheet();
+    if (d.atoggle) { const it = S.adm.items.find(i => i.id === +d.atoggle); await api('/api/admin/toggle', { id: it.id, available: !it.available }); await reloadMenu(); return rAdmin(); }
+    if (d.aphoto) {
+      const id = +d.aphoto;
+      return pickFile(async f => { toast('Загружаем фото…'); const url = await uploadFile(f); await api('/api/admin/item_image', { id, image: url }); await reloadMenu(); rAdmin(); toast('Фото добавлено ✓'); });
+    }
+    if (d.hasOwnProperty('pick') || t.id === 'phBox') {
+      return pickFile(async f => {
+        const box = $('#phBox'); box?.classList.add('busy');
+        try { EDIT.image = await uploadFile(f); $('#phWrap').innerHTML = photoBox(); } finally { $('#phBox')?.classList.remove('busy'); box?.classList.remove('busy'); }
+      });
+    }
+    if (d.hasOwnProperty('rmphoto')) { EDIT.image = ''; $('#phWrap').innerHTML = photoBox(); return; }
+    if (t.id === 'eSave') {
+      const body = { id: EDIT.id || undefined, name: $('#eName').value.trim(), category: $('#eCat').value.trim(), price: $('#ePrice').value,
+        desc: $('#eDesc').value.trim(), hit: $('#eHit').checked, available: $('#eAv').checked, image: EDIT.image || '' };
+      if (!body.name || !body.category || body.price === '') return toast('Заполните название, категорию и цену', 1);
+      await api('/api/admin/item', body); await reloadMenu(); closeSheet(); rAdmin(); return toast('Сохранено ✓');
+    }
+    if (d.adel) { if (!confirm('Удалить блюдо?')) return; await api('/api/admin/delete', { id: +d.adel }); await reloadMenu(); closeSheet(); return rAdmin(); }
+    if (d.hasOwnProperty('aimport')) {
+      openSheet(`<h3>Импорт меню<button class="ic plain" data-sclose>${ic('x')}</button></h3>
+      <p style="color:var(--mute);font-size:13px;margin-bottom:8px">Строка без цены — категория, затем «Блюдо — цена». Всё текущее меню заменится, но фото блюд с теми же названиями сохранятся.</p>
+      <textarea class="imp f" id="impTxt" style="width:100%;border:1.5px solid var(--line);border-radius:14px;padding:12px" placeholder="Салаты&#10;Оливье — 5.5&#10;Винегрет 4,5 | со свёклой"></textarea>
+      <button class="btn red block" id="impGo" style="margin-top:10px">Заменить меню</button>`); return;
+    }
+    if (t.id === 'impGo') { const r = await api('/api/admin/import', { text: $('#impTxt').value }); await reloadMenu(); closeSheet(); rAdmin(); return toast(`Загружено блюд: ${r.count}`); }
+  } catch (err) { toast(err.message || 'Ошибка', 1); }
+});
+$('#sheetBg').addEventListener('click', e => { if (e.target.id === 'sheetBg') closeSheet(); });
+$('#fileInp').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f || !pickCb) return;
+  try { await pickCb(f); } catch (err) { toast(err.message || 'Ошибка загрузки', 1); }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'sInp') { S.q = e.target.value.trim(); renderList(); }
+  if (e.target.id === 'cAddr') delete e.target.dataset.auto;
+});
+
+/* ---------- старт ---------- */
+(async function init() {
+  try {
+    S.menu = await api('/api/menu');
+    try { S.me = await api('/api/me'); } catch { S.me = null; }
+    // выкинуть из корзины блюда, которых больше нет
+    Object.keys(S.cart).forEach(id => { if (!itemById(+id)) delete S.cart[id]; }); saveCart();
+    document.title = S.menu.cafe;
+    go(S.isAdminView && S.me?.is_admin ? 'admin' : 'home');
+  } catch (e) { $('#app').innerHTML = `<div class="empty"><div class="big">😕</div>Не удалось загрузить меню<br>${esc(e.message)}</div>`; }
+})();
+</script>
+</body>
+</html>
